@@ -1,0 +1,876 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "version": "1.0.0",
+    "description": "API for Delivery application",
+    "title": "StoreFleet API"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5100"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ],
+  "paths": {
+    "/api/user/register": {
+      "post": {
+        "tags": ["User"],
+        "summary": "Register",
+        "description": "Register a new user to create an account.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "John Doe"
+                  },
+                  "email": {
+                    "type": "string",
+                    "example": "johndoe@example.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "password123"
+                  },
+                  "role": {
+                    "type": "string",
+                    "example": "customer"
+                  }
+                },
+                "required": ["name", "email", "password", "role"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User registered successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "User registered successfully"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request: Missing or invalid input",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "All fields are required"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict: Email already registered",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Email is already registered"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Internal Server Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/user/login": {
+      "post": {
+        "tags": ["User"],
+        "summary": "User Login",
+        "description": "Authenticate a user with email and password, and return a JWT token if successful.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "example": "johndoe@example.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "password123"
+                  }
+                },
+                "required": ["email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User logged in successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "User logged in successfully",
+                  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid password",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Invalid password"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Email not found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Email not found"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Internal Server Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/user/update": {
+      "put": {
+        "tags": ["User"],
+        "summary": "Update User",
+        "description": "Allows an authenticated user to update their details, excluding the role field which can only be modified by an admin.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "John Doe"
+                  },
+                  "email": {
+                    "type": "string",
+                    "example": "john.doe@example.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "securePassword123"
+                  },
+                  "role": {
+                    "type": "string",
+                    "example": "admin",
+                    "description": "This field cannot be updated by a regular user."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User updated successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "User updated successfully",
+                  "user": {
+                    "_id": "userId12345",
+                    "name": "Updated Name",
+                    "email": "updated.email@example.com",
+                    "role": "user"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden: Role update is restricted",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Role can be changed by only admin"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "User not found"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid token or bad request",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Invalid Token"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized: Token missing or incorrect format",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Access Denied: No token provided or incorrect format"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Internal Server Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/user/delete": {
+      "delete": {
+        "tags": ["User"],
+        "summary": "Delete User",
+        "description": "Deletes the authenticated user's account. Requires a valid JWT token.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User deleted successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "User deleted successfully"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "User not found"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized: Token missing or invalid",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Access Denied: No token provided or incorrect format"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Internal Server Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/product/create": {
+      "post": {
+        "tags": ["Product"],
+        "summary": "Create a Product",
+        "description": "Allows a seller to create a new product. This endpoint requires authentication and a valid bearer token.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "Wireless Earbuds"
+                  },
+                  "category": {
+                    "type": "string",
+                    "example": "Electronics"
+                  },
+                  "price": {
+                    "type": "number",
+                    "example": 99.99
+                  }
+                },
+                "required": ["name", "category", "price"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Product created successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Product created successfully.",
+                  "product": {
+                    "name": "Wireless Earbuds",
+                    "category": "Electronics",
+                    "price": 99.99,
+                    "sellerId": "63f1a1d56d99c05f6b9c12e4"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden: Only sellers can create a product",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Only sellers can create a product."
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity: Missing required fields",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "All fields (name, category, price) are required."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Internal Server Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/product/": {
+      "get": {
+        "tags": ["Product"],
+        "summary": "Get All Products",
+        "description": "Retrieve a list of all available products. This endpoint requires authentication and a valid bearer token.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved all products",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "All products",
+                  "products": [
+                    {
+                      "_id": "63f1a1d56d99c05f6b9c12e4",
+                      "name": "Wireless Earbuds",
+                      "category": "Electronics",
+                      "price": 99.99,
+                      "sellerId": "63f1a1d56d99c05f6b9c12e3"
+                    },
+                    {
+                      "_id": "63f1a1d56d99c05f6b9c12e5",
+                      "name": "Bluetooth Speaker",
+                      "category": "Electronics",
+                      "price": 49.99,
+                      "sellerId": "63f1a1d56d99c05f6b9c12e3"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Something went wrong"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/product/{id}": {
+      "get": {
+        "tags": ["Product"],
+        "summary": "Get Product by ID",
+        "description": "Retrieve a specific product by its ID. This endpoint requires authentication and a valid bearer token.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the product to retrieve",
+            "schema": {
+              "type": "string",
+              "example": "63f1a1d56d99c05f6b9c12e4"
+            }
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved the product",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "product",
+                  "product": {
+                    "_id": "63f1a1d56d99c05f6b9c12e4",
+                    "name": "Wireless Earbuds",
+                    "category": "Electronics",
+                    "price": 99.99,
+                    "sellerId": "63f1a1d56d99c05f6b9c12e3"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Product Id required",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Product Id required"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Product not found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Product not found"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Something went wrong"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/product/update/{id}": {
+      "put": {
+        "tags": ["Product"],
+        "summary": "Update Product",
+        "description": "Allows an authenticated seller to update a product's details (name, category, price) by product ID. This endpoint requires authentication and a valid bearer token.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the product to update",
+            "schema": {
+              "type": "string",
+              "example": "63f1a1d56d99c05f6b9c12e4"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "Updated Wireless Earbuds"
+                  },
+                  "category": {
+                    "type": "string",
+                    "example": "Electronics"
+                  },
+                  "price": {
+                    "type": "number",
+                    "example": 89.99
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product updated successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Product updated successfully",
+                  "updatedProduct": {
+                    "_id": "63f1a1d56d99c05f6b9c12e4",
+                    "name": "Updated Wireless Earbuds",
+                    "category": "Electronics",
+                    "price": 89.99,
+                    "sellerId": "63f1a1d56d99c05f6b9c12e3"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request: Only sellers can update a product",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Only sellers can update a product"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Product not found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Product not found"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Something went wrong"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/product/delete/{id}": {
+      "delete": {
+        "tags": ["Product"],
+        "summary": "Delete Product",
+        "description": "Allows a seller to delete a product by its ID. Only users with the role 'seller' can delete a product.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the product to delete.",
+            "schema": {
+              "type": "string",
+              "example": "60d5f97c6a93b524b6e9e7b4"
+            }
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product deleted successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Product deleted successfully"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request: The product could not be found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Product not found"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden: Only sellers can delete a product",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Only sellers can delete a product"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Internal Server Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/order/create/{productId}": {
+      "post": {
+        "tags": ["Order"],
+        "summary": "Create an Order",
+        "description": "Allows a customer to place an order for a product by providing the product ID, quantity, and order status.",
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the product to order.",
+            "schema": {
+              "type": "string",
+              "example": "60d5f...yourProductId"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "quantity": {
+                    "type": "integer",
+                    "example": 2
+                  },
+                  "status": {
+                    "type": "string",
+                    "example": "pending"
+                  }
+                },
+                "required": ["quantity", "status"]
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Order placed successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Order placed successfully",
+                  "quantity": 2
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request: Missing required fields or Product ID",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Quantity and Status are required"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden: Only customers can create an order",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Only customers can create an order"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Internal Server Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/order/update/{id}": {
+      "put": {
+        "tags": ["Order"],
+        "summary": "Update an Order",
+        "description": "Allows a customer or admin to update the status of an existing order using the order ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the order to update.",
+            "schema": {
+              "type": "string",
+              "example": "60d5f...yourOrderId"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "example": "shipped"
+                  }
+                },
+                "required": ["status"]
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order updated successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Order is updated",
+                  "updateOrder": {
+                    "_id": "60d5f...yourOrderId",
+                    "status": "shipped"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request: Order not found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Order not found"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "something went wrong"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
